@@ -12,7 +12,7 @@ export class WinesStats {
     let quantityOfEachItem: any = {};
 
     this.purchasesHistorics.map((purchaseHistoric) => {
-      purchaseHistoric.itens.forEach((purchaseItem) => {
+      return purchaseHistoric.itens.forEach((purchaseItem) => {
         const item = purchaseItem;
         delete item.codigo;
 
