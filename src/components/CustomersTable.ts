@@ -1,10 +1,6 @@
 import styled from "styled-components";
 
-//background-color: #43344f;
-
 export const Container = styled.div`
-  height: 100vh;
-  width: 100vw;
   disply: flex;
   justify-content: center;
 `;
@@ -13,6 +9,7 @@ export const Th = styled.th`
   padding: 5px 0px;
   width: calc(100% / 3) px;
   text-align: center;
+  font-size: 20px;
   color: #43344f;
   border-bottom: #666 1px solid;
   transition-duration: 600ms;
@@ -34,12 +31,12 @@ export const Tr = styled.tr`
 `;
 
 export const Table = styled.table`
-  width: 80%;
+  width: 70%;
   border-radius: 5px;
   border-spacing: 0;
 `;
 
-export const Title = styled.h3`
+export const Title = styled.h2`
   color: #43344f;
   margin-bottom: 20px;
   max-width: 80%;
@@ -52,4 +49,11 @@ export const ListContainer = styled.div`
   align-items: center;
   margin-top: 15px;
   margin-bottom: 45px;
+`;
+
+export const PageTitle = styled.h1`
+  color: #43344f;
+  max-width: 80%;
+  margin-top: 20px;
+  margin-bottom: 30px;
 `;
