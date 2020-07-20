@@ -1,9 +1,9 @@
-import { Item } from "./Item";
+import { Wine } from "./Wine";
 
 export interface Historic {
   codigo: string;
   data: string;
   cliente: string;
-  itens: Item[];
+  itens: Wine[];
   valorTotal: number;
 }

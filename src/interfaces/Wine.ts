@@ -1,4 +1,4 @@
-export interface Item {
+export interface Wine {
   codigo?: string;
   produto: string;
   variedade: string;
