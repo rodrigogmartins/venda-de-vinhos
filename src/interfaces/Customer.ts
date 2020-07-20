@@ -3,4 +3,5 @@ export interface Customer {
   nome: string;
   cpf: string;
   gastoTotal: number;
+  itensComprados: number;
 }

@@ -6,6 +6,8 @@ import { Historic } from "../interfaces/Historic";
 
 const CustomerList: React.FC = () => {
   let orderedCustomers: Customer[] = [];
+  let biggestSinglePurchaseCustomers: Customer;
+  let loyalCustomers: Customer[] = [];
   const customersApiEndpoint = process.env.REACT_APP_ENDPOINT_USER || "";
   const historicsApiEndpoint = process.env.REACT_APP_ENDPOINT_HISTORIC || "";
   const customers = useFetch<Customer[]>(customersApiEndpoint).data;
@@ -14,26 +16,124 @@ const CustomerList: React.FC = () => {
   if (!customers && !purchasesHistorics) {
     return <p>Carregando...</p>;
   } else {
-    orderedCustomers = OrderByHighestTotalPurchaseValue(
+    orderedCustomers = getCustomersOrderedByHighestTotalPurchaseValue(
+      customers,
+      purchasesHistorics
+    );
+
+    loyalCustomers = getLoyalCustomers(customers, purchasesHistorics);
+    biggestSinglePurchaseCustomers = getBiggestSinglePurchaseCustomers2016(
       customers,
       purchasesHistorics
     );
   }
 
   return (
-    <ul>
-      {orderedCustomers?.map((customer) => (
-        <li key={customer.id}>
-          <Link to={`/customer/${customer.id}`}>
-            {customer.nome} - R$ {customer.gastoTotal.toFixed(2)}
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div>
+      <div>
+        <h2>#1 List Desc</h2>
+        <ul>
+          {orderedCustomers?.map((customer) => (
+            <li key={customer.id}>
+              <Link to={`/customer/${customer.id}`}>
+                {customer.nome} - {customer.cpf} - R${" "}
+                {customer.gastoTotal.toFixed(2)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2>#2 Biggest Single Purchase (2016)</h2>
+        <ul>
+          {
+            <li key={biggestSinglePurchaseCustomers.id}>
+              <Link to={`/customer/${biggestSinglePurchaseCustomers.id}`}>
+                {biggestSinglePurchaseCustomers.nome} -{" "}
+                {biggestSinglePurchaseCustomers.cpf} -{" "}
+                {biggestSinglePurchaseCustomers.itensComprados}
+              </Link>
+            </li>
+          }
+        </ul>
+      </div>
+      <div>
+        <h2>#3 Loyal Customers</h2>
+        <ul>
+          {loyalCustomers?.map((customer) => (
+            <li key={customer.id}>
+              <Link to={`/customer/${customer.id}`}>
+                {customer.nome} - {customer.cpf} - {customer.itensComprados}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 };
 
-const OrderByHighestTotalPurchaseValue = (
+const getBiggestSinglePurchaseCustomers2016 = (
+  customers: Customer[] = [],
+  purchasesHistorics: Historic[] = []
+): Customer => {
+  const purchasesHistorics2016 = getPurchasesHistorics2016(purchasesHistorics);
+
+  let biggestSinglePurchase = 0;
+  let biggestSinglePurchaseCustomerReference = "";
+
+  purchasesHistorics2016.forEach((historic: Historic) => {
+    if (historic.itens.length > biggestSinglePurchase) {
+      biggestSinglePurchase = historic.itens.length;
+      biggestSinglePurchaseCustomerReference = historic.cliente;
+    }
+  });
+
+  const biggestSinglePurchaseCustomer = customers.filter((customer) => {
+    return isCustomerPurchases(
+      customer.cpf,
+      biggestSinglePurchaseCustomerReference
+    );
+  });
+
+  return {
+    ...biggestSinglePurchaseCustomer[0],
+    itensComprados: biggestSinglePurchase,
+  };
+};
+
+const getPurchasesHistorics2016 = (purchasesHistorics: Historic[] = []) => {
+  return purchasesHistorics.filter(
+    (purchaseHistoric) => purchaseHistoric.data.indexOf("2016") > -1
+  );
+};
+
+const getLoyalCustomers = (
+  customers: Customer[] = [],
+  purchasesHistorics: Historic[] = []
+): Customer[] => {
+  const customersWithTotalItemsPurchased: Customer[] = [];
+
+  customers.forEach((customer) => {
+    const customerTotalItemsPurchased = getTotalItemsPurchased(
+      customer,
+      purchasesHistorics
+    );
+
+    customersWithTotalItemsPurchased.push({
+      ...customer,
+      itensComprados: customerTotalItemsPurchased,
+    });
+  });
+
+  const mostLoyalCustomers = customersWithTotalItemsPurchased.sort(
+    (a, b) => b.itensComprados - a.itensComprados
+  );
+
+  return mostLoyalCustomers.slice(0, 5);
+};
+
+const getCustomersOrderedByHighestTotalPurchaseValue = (
   customers: Customer[] = [],
   purchasesHistorics: Historic[] = []
 ): Customer[] => {
@@ -54,6 +154,20 @@ const OrderByHighestTotalPurchaseValue = (
   return customersWithTotalSpend.sort((a, b) => b.gastoTotal - a.gastoTotal);
 };
 
+const getTotalItemsPurchased = (
+  customer: Customer,
+  purchasesHistorics: Historic[] = []
+): number => {
+  try {
+    const customerPurchases = getCustomerPurchases(customer, purchasesHistorics)
+      .length;
+
+    return customerPurchases;
+  } catch (error) {
+    return 0;
+  }
+};
+
 const getTotalPurchaseValue = (
   customer: Customer,
   purchasesHistorics: Historic[] = []
@@ -63,6 +177,7 @@ const getTotalPurchaseValue = (
       customer,
       purchasesHistorics
     );
+
     const purchasesValues = getTotalPurchasesValues(customerPurchases);
 
     return purchasesValues.reduce(
@@ -85,17 +200,14 @@ const getCustomerPurchases = (
   purchasesHistorics: Historic[] = []
 ): Historic[] => {
   return purchasesHistorics.filter((purchaseHistoric) =>
-    isCustomerPurchases(customer, purchaseHistoric)
+    isCustomerPurchases(customer.cpf, purchaseHistoric.cliente)
   );
 };
 
-const isCustomerPurchases = (
-  customer: Customer,
-  purchaseHistoric: Historic
-): boolean => {
-  const normalizedCpf = customerCpfToPurchaseReference(customer.cpf);
+const isCustomerPurchases = (cpf: string, cliente: string): boolean => {
+  const normalizedCpf = customerCpfToPurchaseReference(cpf);
 
-  return purchaseHistoric.cliente.indexOf(normalizedCpf) > -1;
+  return cliente.indexOf(normalizedCpf) > -1;
 };
 
 const customerCpfToPurchaseReference = (cpf: string): string => {
