@@ -56,13 +56,6 @@ describe("Tests getBiggestSinglePurchaseCustomersOfYear()", () => {
       nome: "Marcos",
     });
   });
-  it("Should return false", () => {
-    const purchasesStats = new PurchasesStats([], []);
-
-    expect(
-      purchasesStats.getBiggestSinglePurchaseCustomersOfYear("2015")
-    ).toStrictEqual(false);
-  });
 });
 
 describe("Tests getPurchasesHistoricsOfYear()", () => {
