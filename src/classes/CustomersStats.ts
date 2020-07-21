@@ -81,10 +81,10 @@ export class CustomersStats {
     );
   };
 
-  isCustomerPurchases = (cpf: string, cliente: string): boolean => {
+  isCustomerPurchases = (cpf: string, customer: string): boolean => {
     const normalizedCpf = this.customerCpfToPurchaseReference(cpf);
 
-    return cliente.indexOf(normalizedCpf) > -1;
+    return cpf && customer ? customer.indexOf(normalizedCpf) > -1 : false;
   };
 
   customerCpfToPurchaseReference = (cpf: string): string => {
