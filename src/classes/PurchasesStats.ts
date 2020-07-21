@@ -12,7 +12,7 @@ export class PurchasesStats {
 
   getBiggestSinglePurchaseCustomersOfYear = (
     year: string | number
-  ): Customer => {
+  ): Customer | boolean => {
     const purchasesHistoricsOfYear = this.getPurchasesHistoricsOfYear(year);
 
     const {
@@ -24,10 +24,12 @@ export class PurchasesStats {
       biggestSinglePurchaseCustomerReference
     );
 
-    return {
-      ...biggestSinglePurchaseCustomer[0],
-      itensComprados: biggestSinglePurchase,
-    };
+    return biggestSinglePurchaseCustomer[0]
+      ? {
+          ...biggestSinglePurchaseCustomer[0],
+          itensComprados: biggestSinglePurchase,
+        }
+      : false;
   };
 
   getPurchasesHistoricsOfYear = (year: string | number) => {
@@ -59,10 +61,10 @@ export class PurchasesStats {
     });
   };
 
-  isCustomerPurchases = (cpf: string, cliente: string): boolean => {
+  isCustomerPurchases = (cpf: string, customer: string): boolean => {
     const normalizedCpf = this.customerCpfToPurchaseReference(cpf);
 
-    return cliente.indexOf(normalizedCpf) > -1;
+    return cpf && customer ? customer.indexOf(normalizedCpf) > -1 : false;
   };
 
   customerCpfToPurchaseReference = (cpf: string): string => {
