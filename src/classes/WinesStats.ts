@@ -31,33 +31,51 @@ export class WinesStats {
 
   getTopSaledItems = (itemsObject: any = {}, wantedItems: number) => {
     const items: Wine[] = [];
-    const topSaledItems = this.getSaledItemsOnDescOrder(itemsObject).slice(
-      0,
-      wantedItems
-    );
+    const topSaledItems = this.getSaledItemsReferenceOnDescOrder(
+      itemsObject
+    ).slice(0, wantedItems);
 
     topSaledItems.forEach((itemKey) => {
-      items.push(this.parseItemStringToObject(itemKey, itemsObject));
+      const salesQuantity = itemsObject[itemKey];
+      itemKey += `**${salesQuantity}`;
+      const itemObject = this.parseItemStringToObject(itemKey);
+
+      if (itemObject) {
+        items.push(itemObject);
+      }
     });
 
     return items;
   };
 
-  getSaledItemsOnDescOrder = (items: any) => {
+  getSaledItemsReferenceOnDescOrder = (items: any) => {
     return Object.keys(items).sort((a, b) => items[b] - items[a]);
   };
 
-  parseItemStringToObject = (itemKey: string, itemsObject: any) => {
-    const item = itemKey.split("**");
-
-    return {
-      produto: item[0],
-      variedade: item[1],
-      pais: item[2],
-      categoria: item[3],
-      safra: item[4],
-      preco: parseFloat(item[5]),
-      quantidadeVendas: itemsObject[itemKey],
+  parseItemStringToObject = (itemKey: string) => {
+    const itemProps = itemKey.split("**");
+    const itemObject = {
+      produto: itemProps[0],
+      variedade: itemProps[1],
+      pais: itemProps[2],
+      categoria: itemProps[3],
+      safra: itemProps[4],
+      preco: parseFloat(itemProps[5]),
+      quantidadeVendas: parseInt(itemProps[6]),
     };
+
+    const objectFinelValues = Object.values(itemObject);
+
+    for (const property of objectFinelValues) {
+      if (!property) {
+        return false;
+      }
+
+      if (typeof property === "number" && isNaN(property)) {
+        return false;
+      }
+    }
+
+    return itemObject;
   };
 }
