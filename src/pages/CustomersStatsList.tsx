@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useFetch } from "../hooks/useFetch";
 import { Customer } from "../interfaces/Customer";
 import { Historic } from "../interfaces/Historic";
@@ -35,6 +36,7 @@ const CustomersStatsList: React.FC = () => {
 
   return (
     <Container>
+      <Link to={"/"}>Home</Link>
       <ListContainer>
         <PageTitle> Estatisticas dos clientes </PageTitle>
         <Title>Clientes ordenados pelo maior valor total em compras.</Title>
